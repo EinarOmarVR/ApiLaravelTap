@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\PerfilesController;
 use App\Http\Controllers\Api\PermisosController;
 use App\Http\Controllers\Api\ProductosController;
+use App\Http\Controllers\Api\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
@@ -31,7 +32,6 @@ Route::post('/InsertPermiso', [PermisosController::class, 'InsertPermiso']);
 Route::put('/UpdatePermiso/{id}', [PermisosController::class, 'UpdatePermiso']);
 Route::delete('/DeletePermiso/{id}', [PermisosController::class, 'DeletePermiso']);
 
-
 /*
 |--------------------------------------------------------------------------
 | Perfiles
@@ -42,3 +42,13 @@ Route::get('/GetPerfil/{id}', [PerfilesController::class, 'GetPerfil']);
 Route::post('/InsertPerfil', [PerfilesController::class, 'InsertPerfil']);
 Route::put('/UpdatePerfil/{id}', [PerfilesController::class, 'UpdatePerfil']);
 Route::delete('/DeletePerfil/{id}', [PerfilesController::class, 'DeletePerfil']);
+/*
+|--------------------------------------------------------------------------
+| Usuarios
+|--------------------------------------------------------------------------
+*/
+Route::get('/GetUsuarios', [UsuarioController::class, 'GetUsuarios']);
+Route::get('/GetUsuario/{id}', [UsuarioController::class, 'GetUsuario']);
+Route::post('/InsertUsuario', [UsuarioController::class, 'InsertUsuario']);
+Route::post('/UpdateUsuario/{id}', [UsuarioController::class, 'UpdateUsuario']);
+Route::delete('/DeleteUsuario/{id}', [UsuarioController::class, 'DeleteUsuario']);
