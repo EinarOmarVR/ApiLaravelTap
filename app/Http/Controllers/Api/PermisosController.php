@@ -3,34 +3,34 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PerfilResource;
-use App\Models\Perfiles;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
-
-class PerfilesController extends Controller
+use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\PermisoResource;
+use App\Models\Permisos;
+class PermisosController extends Controller
 {
     /**
-     * Validar perfil
+     * Validar permiso
      */
-    private function ValidarPerfil(Request $request)
+    private function ValidarPermiso(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'SCodigo' => 'required|string|max:100',
-            'SPerfil' => 'required|string|max:255',
-            'SDescripcion' => 'nullable|string|max:500',
-            'APermisos' => 'nullable|array'
+            'SPermiso' => 'required|string|max:255',
+            'SModulo' => 'required|string|max:255',
+            'SDescripcion' => 'nullable|string|max:500'
         ], [
-            'SCodigo.required' => 'El código del perfil es obligatorio.',
-            'SCodigo.string' => 'El código del perfil debe ser texto.',
+            'SCodigo.required' => 'El código del permiso es obligatorio.',
+            'SCodigo.string' => 'El código del permiso debe ser texto.',
 
-            'SPerfil.required' => 'El perfil es obligatorio.',
-            'SPerfil.string' => 'El perfil debe ser texto.',
+            'SPermiso.required' => 'El nombre del permiso es obligatorio.',
+            'SPermiso.string' => 'El nombre del permiso debe ser texto.',
 
-            'SDescripcion.string' => 'La descripción debe ser texto.',
+            'SModulo.required' => 'El módulo es obligatorio.',
+            'SModulo.string' => 'El módulo debe ser texto.',
 
-            'APermisos.array' => 'Los permisos deben ser un arreglo.'
+            'SDescripcion.string' => 'La descripción debe ser texto.'
         ]);
 
         if ($validator->fails()) {
@@ -43,138 +43,123 @@ class PerfilesController extends Controller
         return null;
     }
 
-
     /**
-     * Obtener todos los perfiles
+     * Obtener todos los permisos
      */
-    public function GetPerfiles()
+    public function GetPermisos()
     {
-        $perfiles = Perfiles::orderBy('TFechaCap', 'desc')->get();
+        $permisos = Permisos::orderBy('TFechaCap', 'desc')->get();
 
-        return PerfilResource::collection($perfiles);
+        return PermisoResource::collection($permisos);
     }
 
-
     /**
-     * Obtener un perfil por Id
+     * Obtener un permiso por Id
      */
-    public function GetPerfil(string $id)
+    public function GetPermiso(string $id)
     {
-        $perfil = Perfiles::find($id);
+        $permiso = Permisos::find($id);
 
-        if (!$perfil) {
+        if (!$permiso) {
             return response()->json([
-                'message' => 'Perfil no encontrado.'
+                'message' => 'Permiso no encontrado.'
             ], Response::HTTP_NOT_FOUND);
         }
 
-        return new PerfilResource($perfil);
+        return new PermisoResource($permiso);
     }
 
-
     /**
-     * Crear perfil
+     * Crear permiso
      */
-    public function InsertPerfil(Request $request)
+    public function InsertPermiso(Request $request)
     {
-        $error = $this->ValidarPerfil($request);
+        $error = $this->ValidarPermiso($request);
 
         if ($error) {
             return $error;
         }
 
-
-        if (Perfiles::where('SCodigo', $request->SCodigo)->exists()) {
+        if (Permisos::where('SCodigo', $request->SCodigo)->exists()) {
             return response()->json([
-                'message' => 'Ya existe un perfil con ese código.'
+                'message' => 'Ya existe un permiso con ese código.'
             ], Response::HTTP_CONFLICT);
         }
 
+        $permiso = new Permisos();
 
-        $perfil = new Perfiles();
+        $permiso->SCodigo = $request->SCodigo;
+        $permiso->SPermiso = $request->SPermiso;
+        $permiso->SModulo = $request->SModulo;
+        $permiso->SDescripcion = $request->SDescripcion;
 
-        $perfil->SCodigo = $request->SCodigo;
-        $perfil->SPerfil = $request->SPerfil;
-        $perfil->SDescripcion = $request->SDescripcion;
-        $perfil->APermisos = $request->APermisos ?? [];
-
-        $perfil->save();
-
+        $permiso->save();
 
         return response()->json([
-            'message' => 'Perfil creado correctamente.',
-            'data' => $perfil
+            'message' => 'Permiso creado correctamente.',
+            'data' => $permiso
         ], Response::HTTP_CREATED);
     }
 
-
     /**
-     * Actualizar perfil
+     * Actualizar permiso
      */
-    public function UpdatePerfil(Request $request, string $id)
+    public function UpdatePermiso(Request $request, string $id)
     {
-        $error = $this->ValidarPerfil($request);
+        $error = $this->ValidarPermiso($request);
 
         if ($error) {
             return $error;
         }
 
+        $permiso = Permisos::find($id);
 
-        $perfil = Perfiles::find($id);
-
-        if (!$perfil) {
+        if (!$permiso) {
             return response()->json([
-                'message' => 'Perfil no encontrado.'
+                'message' => 'Permiso no encontrado.'
             ], Response::HTTP_NOT_FOUND);
         }
 
-
-        $existeCodigo = Perfiles::where('SCodigo', $request->SCodigo)
+        $existeCodigo = Permisos::where('SCodigo', $request->SCodigo)
             ->where('_id', '!=', $id)
             ->exists();
 
-
         if ($existeCodigo) {
             return response()->json([
-                'message' => 'Ya existe un perfil con ese código.'
+                'message' => 'Ya existe un permiso con ese código.'
             ], Response::HTTP_CONFLICT);
         }
 
+        $permiso->SCodigo = $request->SCodigo;
+        $permiso->SPermiso = $request->SPermiso;
+        $permiso->SModulo = $request->SModulo;
+        $permiso->SDescripcion = $request->SDescripcion;
 
-        $perfil->SCodigo = $request->SCodigo;
-        $perfil->SPerfil = $request->SPerfil;
-        $perfil->SDescripcion = $request->SDescripcion;
-        $perfil->APermisos = $request->APermisos ?? [];
-
-        $perfil->save();
-
+        $permiso->save();
 
         return response()->json([
-            'message' => 'Perfil actualizado correctamente.',
-            'data' => $perfil
+            'message' => 'Permiso actualizado correctamente.',
+            'data' => $permiso
         ], Response::HTTP_OK);
     }
 
-
     /**
-     * Eliminar perfil
+     * Eliminar permiso
      */
-    public function DeletePerfil(string $id)
+    public function DeletePermiso(string $id)
     {
-        $perfil = Perfiles::find($id);
+        $permiso = Permisos::find($id);
 
-        if (!$perfil) {
+        if (!$permiso) {
             return response()->json([
-                'message' => 'Perfil no encontrado.'
+                'message' => 'Permiso no encontrado.'
             ], Response::HTTP_NOT_FOUND);
         }
 
-
-        $perfil->delete();
-
+        $permiso->delete();
 
         return response()->json([
-            'message' => 'Perfil eliminado correctamente.'
+            'message' => 'Permiso eliminado correctamente.'
         ], Response::HTTP_OK);
     }
 }
