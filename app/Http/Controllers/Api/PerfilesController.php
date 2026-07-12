@@ -25,19 +25,22 @@ class PerfilesController extends Controller
             'SCodigo.required' => 'El código del perfil es obligatorio.',
             'SCodigo.string' => 'El código del perfil debe ser texto.',
 
-            'SPerfil.required' => 'El perfil es obligatorio.',
-            'SPerfil.string' => 'El perfil debe ser texto.',
+            'SPerfil.required' => 'El nombre del perfil es obligatorio.',
+            'SPerfil.string' => 'El nombre del perfil debe ser texto.',
 
             'SDescripcion.string' => 'La descripción debe ser texto.',
 
             'APermisos.array' => 'Los permisos deben ser un arreglo.'
         ]);
 
+
         if ($validator->fails()) {
+
             return response()->json([
                 'message' => 'Error de validación.',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
+
         }
 
         return null;
@@ -63,10 +66,13 @@ class PerfilesController extends Controller
         $perfil = Perfiles::find($id);
 
         if (!$perfil) {
+
             return response()->json([
                 'message' => 'Perfil no encontrado.'
             ], Response::HTTP_NOT_FOUND);
+
         }
+
 
         return new PerfilResource($perfil);
     }
@@ -85,18 +91,23 @@ class PerfilesController extends Controller
 
 
         if (Perfiles::where('SCodigo', $request->SCodigo)->exists()) {
+
             return response()->json([
                 'message' => 'Ya existe un perfil con ese código.'
             ], Response::HTTP_CONFLICT);
+
         }
 
 
         $perfil = new Perfiles();
 
+
         $perfil->SCodigo = $request->SCodigo;
         $perfil->SPerfil = $request->SPerfil;
         $perfil->SDescripcion = $request->SDescripcion;
         $perfil->APermisos = $request->APermisos ?? [];
+        $perfil->TFechaCap = now();
+
 
         $perfil->save();
 
@@ -122,10 +133,13 @@ class PerfilesController extends Controller
 
         $perfil = Perfiles::find($id);
 
+
         if (!$perfil) {
+
             return response()->json([
                 'message' => 'Perfil no encontrado.'
             ], Response::HTTP_NOT_FOUND);
+
         }
 
 
@@ -135,9 +149,11 @@ class PerfilesController extends Controller
 
 
         if ($existeCodigo) {
+
             return response()->json([
                 'message' => 'Ya existe un perfil con ese código.'
             ], Response::HTTP_CONFLICT);
+
         }
 
 
@@ -145,6 +161,7 @@ class PerfilesController extends Controller
         $perfil->SPerfil = $request->SPerfil;
         $perfil->SDescripcion = $request->SDescripcion;
         $perfil->APermisos = $request->APermisos ?? [];
+
 
         $perfil->save();
 
@@ -163,10 +180,13 @@ class PerfilesController extends Controller
     {
         $perfil = Perfiles::find($id);
 
+
         if (!$perfil) {
+
             return response()->json([
                 'message' => 'Perfil no encontrado.'
             ], Response::HTTP_NOT_FOUND);
+
         }
 
 

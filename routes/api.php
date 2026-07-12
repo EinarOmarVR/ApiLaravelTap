@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\PerfilesController;
 use App\Http\Controllers\Api\PermisosController;
 use App\Http\Controllers\Api\ProductosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -30,3 +30,15 @@ Route::get('/GetPermiso/{id}', [PermisosController::class, 'GetPermiso']);
 Route::post('/InsertPermiso', [PermisosController::class, 'InsertPermiso']);
 Route::put('/UpdatePermiso/{id}', [PermisosController::class, 'UpdatePermiso']);
 Route::delete('/DeletePermiso/{id}', [PermisosController::class, 'DeletePermiso']);
+
+
+/*
+|--------------------------------------------------------------------------
+| Perfiles
+|--------------------------------------------------------------------------
+*/
+Route::get('/GetPerfiles', [PerfilesController::class, 'GetPerfiles']);
+Route::get('/GetPerfil/{id}', [PerfilesController::class, 'GetPerfil']);
+Route::post('/InsertPerfil', [PerfilesController::class, 'InsertPerfil']);
+Route::put('/UpdatePerfil/{id}', [PerfilesController::class, 'UpdatePerfil']);
+Route::delete('/DeletePerfil/{id}', [PerfilesController::class, 'DeletePerfil']);
