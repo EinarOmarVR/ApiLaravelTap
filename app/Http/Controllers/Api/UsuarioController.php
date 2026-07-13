@@ -208,9 +208,7 @@ class UsuarioController extends Controller
         $usuario->STelefono = $request->STelefono;
         $usuario->SIDPerfil = $request->SIDPerfil;
 
-        if ($request->filled('SPassword')) {
-            $usuario->SPassword = Hash::make($request->SPassword);
-        }
+
 
         // Si llega una nueva imagen
         if ($request->hasFile('SFotoPerfil')) {

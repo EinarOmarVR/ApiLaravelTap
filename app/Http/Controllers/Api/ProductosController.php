@@ -8,7 +8,7 @@ use App\Models\Productos;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
-class ProductosController extends Controller
+class ProductosController extends BaseController
 {
    private function ValidarProducto(Request $request)
     {
@@ -43,6 +43,7 @@ class ProductosController extends Controller
      */
     public function GetProductos()
     {
+
         $productos = Productos::orderBy('TFechaCreacion', 'desc')->get();
 
         return ProductoResource::collection($productos);
@@ -69,7 +70,12 @@ class ProductosController extends Controller
      */
     public function InsertProduct(Request $request)
     {
-        $error = $this->ValidarProducto($request);
+        $permiso = $this->TienePermiso('PROD_AddUpd');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
+                $error = $this->ValidarProducto($request);
 
         if ($error) {
             return $error;
@@ -97,6 +103,11 @@ class ProductosController extends Controller
      */
     public function UpdateProduct(Request $request, string $id)
     {
+        $permiso = $this->TienePermiso('PROD_AddUpd');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         
         $error = $this->ValidarProducto($request);
 
@@ -129,6 +140,11 @@ class ProductosController extends Controller
      */
     public function DeleteProduct(string $id)
     {
+        $permiso = $this->TienePermiso('PROD_DELETE');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $producto = Productos::find($id);
 
         if (!$producto) {

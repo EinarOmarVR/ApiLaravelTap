@@ -15,12 +15,17 @@ Route::get('/user', function (Request $request) {
 | Productos
 |--------------------------------------------------------------------------
 */
-Route::get('/GetProductos', [ProductosController::class, 'GetProductos']);
-Route::get('/GetProducto/{id}', [ProductosController::class, 'GetProducto']);
-Route::post('/InsertProduct', [ProductosController::class, 'InsertProduct']);
-Route::put('/UpdateProduct/{id}', [ProductosController::class, 'UpdateProduct']);
-Route::delete('/DeleteProduct/{id}', [ProductosController::class, 'DeleteProduct']);
+Route::middleware('auth:api')->group(function () {
 
+    Route::get('/GetProductos', [ProductosController::class, 'GetProductos']);
+    Route::get('/GetProducto/{id}', [ProductosController::class, 'GetProducto']);
+
+    Route::post('/InsertProducto', [ProductosController::class, 'InsertProduct']);
+    Route::put('/UpdateProducto/{id}', [ProductosController::class, 'UpdateProduct']);
+
+    Route::delete('/DeleteProducto/{id}', [ProductosController::class, 'DeleteProduct']);
+
+});
 /*
 |--------------------------------------------------------------------------
 | Permisos
@@ -70,5 +75,4 @@ Route::middleware('auth:api')->group(function () {
 
 });
 Route::post('/RecuperarPassword', [AuthController::class, 'RecuperarPassword']);
-Route::post('/CambiarPassword', [AuthController::class, 'CambiarPassword'])
-    ->middleware('auth:api');
+Route::post('/CambiarPassword', [AuthController::class, 'CambiarPassword'])->middleware('auth:api');
