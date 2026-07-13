@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
-class PerfilesController extends Controller
+class PerfilesController extends BaseController
 {
     /**
      * Validar perfil
@@ -52,6 +52,11 @@ class PerfilesController extends Controller
      */
     public function GetPerfiles()
     {
+        $permiso = $this->TienePermiso('PROFILE_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $perfiles = Perfiles::orderBy('TFechaCap', 'desc')->get();
 
         return PerfilResource::collection($perfiles);
@@ -63,6 +68,11 @@ class PerfilesController extends Controller
      */
     public function GetPerfil(string $id)
     {
+        $permiso = $this->TienePermiso('PROFILE_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $perfil = Perfiles::find($id);
 
         if (!$perfil) {
@@ -83,6 +93,11 @@ class PerfilesController extends Controller
      */
     public function InsertPerfil(Request $request)
     {
+        $permiso = $this->TienePermiso('PROFILE_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarPerfil($request);
 
         if ($error) {
@@ -124,6 +139,11 @@ class PerfilesController extends Controller
      */
     public function UpdatePerfil(Request $request, string $id)
     {
+        $permiso = $this->TienePermiso('PROFILE_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarPerfil($request);
 
         if ($error) {
@@ -178,6 +198,11 @@ class PerfilesController extends Controller
      */
     public function DeletePerfil(string $id)
     {
+        $permiso = $this->TienePermiso('PROFILE_DELETE');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $perfil = Perfiles::find($id);
 
 

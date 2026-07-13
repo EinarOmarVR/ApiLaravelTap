@@ -75,7 +75,7 @@ class ProductosController extends BaseController
         if ($permiso !== true) {
             return $permiso;
         }
-                $error = $this->ValidarProducto($request);
+            $error = $this->ValidarProducto($request);
 
         if ($error) {
             return $error;

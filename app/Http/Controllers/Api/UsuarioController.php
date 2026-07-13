@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-class UsuarioController extends Controller
+class UsuarioController extends BaseController
 {
     private function ValidarUsuario(Request $request)
     {
@@ -84,12 +84,23 @@ class UsuarioController extends Controller
     }
     public function GetUsuarios()
     {
+        $permiso = $this->TienePermiso('USER_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $usuarios = Usuarios::orderBy('TFechaCap', 'desc')->get();
 
         return UsuarioResource::collection($usuarios);
     }
     public function GetUsuario(string $id)
     {
+        $permiso = $this->TienePermiso('USER_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
+
         $usuario = Usuarios::find($id);
 
         if (!$usuario) {
@@ -104,6 +115,11 @@ class UsuarioController extends Controller
     }
     public function InsertUsuario(Request $request)
     {
+        $permiso = $this->TienePermiso('USER_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarUsuario($request);
 
         if ($error) {
@@ -173,6 +189,11 @@ class UsuarioController extends Controller
     }
     public function UpdateUsuario(Request $request, string $id)
     {
+        $permiso = $this->TienePermiso('USER_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarUsuario($request);
 
         if ($error) {
@@ -244,6 +265,11 @@ class UsuarioController extends Controller
 
   public function DeleteUsuario(string $id)
     {
+        $permiso = $this->TienePermiso('USER_DELETE');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $usuario = Usuarios::find($id);
 
         if (!$usuario) {

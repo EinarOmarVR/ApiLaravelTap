@@ -8,8 +8,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\PermisoResource;
 use App\Models\Permisos;
-class PermisosController extends Controller
+
+class PermisosController extends BaseController
 {
+    
+
     /**
      * Validar permiso
      */
@@ -48,6 +51,12 @@ class PermisosController extends Controller
      */
     public function GetPermisos()
     {
+        $permiso = $this->TienePermiso('PERMISSION_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
+        
         $permisos = Permisos::orderBy('TFechaCap', 'desc')->get();
 
         return PermisoResource::collection($permisos);
@@ -58,6 +67,13 @@ class PermisosController extends Controller
      */
     public function GetPermiso(string $id)
     {
+        
+        $permiso = $this->TienePermiso('PERMISSION_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
+
         $permiso = Permisos::find($id);
 
         if (!$permiso) {
@@ -74,6 +90,11 @@ class PermisosController extends Controller
      */
     public function InsertPermiso(Request $request)
     {
+        $permiso = $this->TienePermiso('PERMISSION_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarPermiso($request);
 
         if ($error) {
@@ -106,6 +127,11 @@ class PermisosController extends Controller
      */
     public function UpdatePermiso(Request $request, string $id)
     {
+        $permiso = $this->TienePermiso('PERMISSION_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $error = $this->ValidarPermiso($request);
 
         if ($error) {
@@ -148,6 +174,11 @@ class PermisosController extends Controller
      */
     public function DeletePermiso(string $id)
     {
+        $permiso = $this->TienePermiso('PERMISSION_ADDUPD');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $permiso = Permisos::find($id);
 
         if (!$permiso) {
