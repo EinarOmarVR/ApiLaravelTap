@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class UsuarioController extends Controller
 {
-private function ValidarUsuario(Request $request)
+    private function ValidarUsuario(Request $request)
     {
         $validator = Validator::make($request->all(), [
 
@@ -88,9 +88,6 @@ private function ValidarUsuario(Request $request)
 
         return UsuarioResource::collection($usuarios);
     }
-
-
-  
     public function GetUsuario(string $id)
     {
         $usuario = Usuarios::find($id);
@@ -105,9 +102,6 @@ private function ValidarUsuario(Request $request)
 
         return new UsuarioResource($usuario);
     }
-
-
-  
     public function InsertUsuario(Request $request)
     {
         $error = $this->ValidarUsuario($request);
@@ -123,12 +117,14 @@ private function ValidarUsuario(Request $request)
             ], Response::HTTP_CONFLICT);
 
         }
-        // Crear usuario
+          // Crear usuario
         $usuario = new Usuarios();
         $usuario->SCodigo = $this->GenerarCodigoUsuario();
         $usuario->SNombre = $request->SNombre;
         $usuario->SUsuario = $request->SUsuario;
         $usuario->SPassword = Hash::make($request->SPassword);
+        $usuario->BPasswordTemporal = false;
+        $usuario->TFechaPasswordTemporal = null;
         $usuario->STelefono = $request->STelefono;
 
  
@@ -175,7 +171,6 @@ private function ValidarUsuario(Request $request)
             'data' => $usuario
         ], Response::HTTP_CREATED);
     }
-
     public function UpdateUsuario(Request $request, string $id)
     {
         $error = $this->ValidarUsuario($request);

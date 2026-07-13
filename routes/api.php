@@ -52,3 +52,23 @@ Route::get('/GetUsuario/{id}', [UsuarioController::class, 'GetUsuario']);
 Route::post('/InsertUsuario', [UsuarioController::class, 'InsertUsuario']);
 Route::post('/UpdateUsuario/{id}', [UsuarioController::class, 'UpdateUsuario']);
 Route::delete('/DeleteUsuario/{id}', [UsuarioController::class, 'DeleteUsuario']);
+
+use App\Http\Controllers\Api\AuthController;
+
+
+/*
+|--------------------------------------------------------------------------
+| Auth
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/Login', [AuthController::class, 'Login']);
+
+Route::middleware('auth:api')->group(function () {
+
+    Route::post('/Logout', [AuthController::class, 'Logout']);
+
+});
+Route::post('/RecuperarPassword', [AuthController::class, 'RecuperarPassword']);
+Route::post('/CambiarPassword', [AuthController::class, 'CambiarPassword'])
+    ->middleware('auth:api');
