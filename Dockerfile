@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     && docker-php-ext-install zip \
-    && pecl install mongodb-1.21.3 \
+    && pecl install mongodb-1.21.5 \
     && docker-php-ext-enable mongodb \
     && rm -rf /var/lib/apt/lists/*
 
