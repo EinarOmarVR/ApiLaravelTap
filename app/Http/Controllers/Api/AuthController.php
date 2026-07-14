@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     public function Login(Request $request)
@@ -223,34 +224,69 @@ class AuthController extends Controller
 
         $usuario->SPassword = Hash::make($passwordTemporal);
 
-        $usuario->BPasswordTemporal = true;
-
-        $usuario->TFechaPasswordTemporal = now();
-
-        $usuario->save();
-
         /*
         |--------------------------------------------------------------------------
-        | Enviar correo
+        | Enviar correo mediante Brevo
         |--------------------------------------------------------------------------
         */
 
-        Mail::raw(
+        $response = Http::withHeaders([
+            'api-key' => config('services.brevo.key'),
+            'accept' => 'application/json',
+            'content-type' => 'application/json',
+        ])->post('https://api.brevo.com/v3/smtp/email', [
+            'sender' => [
+                'name' => 'Sistema TAP',
+                'email' => env('MAIL_FROM_ADDRESS'),
+            ],
+            'to' => [
+                [
+                    'email' => $usuario->SUsuario,
+                    'name' => $usuario->SNombre,
+                ],
+            ],
+            'subject' => 'Recuperación de contraseña',
+            'htmlContent' => "
+                <h2>Recuperación de contraseña</h2>
 
-            "Hola {$usuario->SNombre}
-            Se solicitó recuperar la contraseña de tu cuenta.
-            Tu contraseña temporal es:
-            {$passwordTemporal}
-            Por seguridad, al iniciar sesión deberás cambiarla.",
-            function ($message) use ($usuario) {
-                $message->to($usuario->SUsuario)
-                    ->subject('Recuperación de contraseña');
-            }
+                <p>Hola {$usuario->SNombre},</p>
 
-        );
-        return response()->json([
-            'message' => 'Se envió una contraseña temporal al correo registrado.'
-        ], Response::HTTP_OK);
+                <p>Se solicitó recuperar la contraseña de tu cuenta.</p>
+
+                <p>Tu contraseña temporal es:</p>
+
+                <p>
+                    <strong>{$passwordTemporal}</strong>
+                </p>
+
+                <p>
+                    Por seguridad, al iniciar sesión deberás cambiarla.
+                </p>
+            ",
+        ]);
+
+        if ($response->failed()) {
+
+            Log::error('Error al enviar correo mediante Brevo.', [
+                'status' => $response->status(),
+                'response' => $response->json(),
+            ]);
+
+            return response()->json([
+                'message' => 'No fue posible enviar el correo de recuperación.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Guardar contraseña después de enviar correctamente
+        |--------------------------------------------------------------------------
+        */
+
+        $usuario->SPassword = Hash::make($passwordTemporal);
+        $usuario->BPasswordTemporal = true;
+        $usuario->TFechaPasswordTemporal = now();
+        $usuario->save();
     }
     public function CambiarPassword(Request $request)
     {
