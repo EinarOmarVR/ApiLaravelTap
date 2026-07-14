@@ -163,24 +163,22 @@ class AuthController extends Controller
     }
     public function RecuperarPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-
-            'SUsuario' => 'required|email'
-
-        ], [
-
-            'SUsuario.required' => 'El correo es obligatorio.',
-            'SUsuario.email' => 'Debe ingresar un correo válido.'
-
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'SUsuario' => 'required|email'
+            ],
+            [
+                'SUsuario.required' => 'El correo es obligatorio.',
+                'SUsuario.email' => 'Debe ingresar un correo válido.'
+            ]
+        );
 
         if ($validator->fails()) {
-
             return response()->json([
                 'message' => 'Error de validación.',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-
         }
 
         /*
@@ -195,11 +193,9 @@ class AuthController extends Controller
         )->first();
 
         if (!$usuario) {
-
             return response()->json([
                 'message' => 'No existe un usuario con ese correo.'
             ], Response::HTTP_NOT_FOUND);
-
         }
 
         /*
@@ -209,84 +205,103 @@ class AuthController extends Controller
         */
 
         $passwordTemporal = Str::password(
-            10,   // Longitud
-            true, // Letras
-            true, // Números
-            true, // Símbolos
-            false // Espacios
+            10,    // Longitud
+            true,  // Letras
+            true,  // Números
+            true,  // Símbolos
+            false  // Espacios
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Guardar contraseña temporal
+        | Preparar contenido
         |--------------------------------------------------------------------------
         */
 
-        $usuario->SPassword = Hash::make($passwordTemporal);
+        $nombreSeguro = e($usuario->SNombre);
+        $passwordSeguro = e($passwordTemporal);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Enviar correo mediante Brevo
-        |--------------------------------------------------------------------------
-        */
+        try {
+            /*
+            |--------------------------------------------------------------------------
+            | Enviar correo mediante la API HTTPS de Brevo
+            |--------------------------------------------------------------------------
+            */
 
-        $response = Http::withHeaders([
-            'api-key' => config('services.brevo.key'),
-            'accept' => 'application/json',
-            'content-type' => 'application/json',
-        ])->post('https://api.brevo.com/v3/smtp/email', [
-            'sender' => [
-                'name' => 'Sistema TAP',
-                'email' => env('MAIL_FROM_ADDRESS'),
-            ],
-            'to' => [
-                [
-                    'email' => $usuario->SUsuario,
-                    'name' => $usuario->SNombre,
-                ],
-            ],
-            'subject' => 'Recuperación de contraseña',
-            'htmlContent' => "
-                <h2>Recuperación de contraseña</h2>
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'api-key' => config('services.brevo.key'),
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
+                ])
+                ->post('https://api.brevo.com/v3/smtp/email', [
+                    'sender' => [
+                        'name' => 'Sistema TAP',
+                        'email' => env('MAIL_FROM_ADDRESS'),
+                    ],
+                    'to' => [
+                        [
+                            'email' => $usuario->SUsuario,
+                            'name' => $usuario->SNombre,
+                        ],
+                    ],
+                    'subject' => 'Recuperación de contraseña',
+                    'htmlContent' => "
+                        <h2>Recuperación de contraseña</h2>
 
-                <p>Hola {$usuario->SNombre},</p>
+                        <p>Hola {$nombreSeguro},</p>
 
-                <p>Se solicitó recuperar la contraseña de tu cuenta.</p>
+                        <p>
+                            Se solicitó recuperar la contraseña de tu cuenta.
+                        </p>
 
-                <p>Tu contraseña temporal es:</p>
+                        <p>Tu contraseña temporal es:</p>
 
-                <p>
-                    <strong>{$passwordTemporal}</strong>
-                </p>
+                        <p style=\"font-size: 18px;\">
+                            <strong>{$passwordSeguro}</strong>
+                        </p>
 
-                <p>
-                    Por seguridad, al iniciar sesión deberás cambiarla.
-                </p>
-            ",
-        ]);
+                        <p>
+                            Por seguridad, al iniciar sesión deberás cambiarla.
+                        </p>
+                    ",
+                ]);
 
-        if ($response->failed()) {
+            if ($response->failed()) {
+                Log::error('Error al enviar correo mediante Brevo.', [
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ]);
 
-            Log::error('Error al enviar correo mediante Brevo.', [
-                'status' => $response->status(),
-                'response' => $response->json(),
+                return response()->json([
+                    'message' => 'No fue posible enviar el correo de recuperación.'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Guardar contraseña después del envío exitoso
+            |--------------------------------------------------------------------------
+            */
+
+            $usuario->SPassword = Hash::make($passwordTemporal);
+            $usuario->BPasswordTemporal = true;
+            $usuario->TFechaPasswordTemporal = now();
+            $usuario->save();
+
+            return response()->json([
+                'message' => 'Se envió una contraseña temporal al correo registrado.'
+            ], Response::HTTP_OK);
+
+        } catch (\Throwable $exception) {
+            Log::error('Excepción al enviar correo mediante Brevo.', [
+                'message' => $exception->getMessage(),
             ]);
 
             return response()->json([
                 'message' => 'No fue posible enviar el correo de recuperación.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Guardar contraseña después de enviar correctamente
-        |--------------------------------------------------------------------------
-        */
-
-        $usuario->SPassword = Hash::make($passwordTemporal);
-        $usuario->BPasswordTemporal = true;
-        $usuario->TFechaPasswordTemporal = now();
-        $usuario->save();
     }
     public function CambiarPassword(Request $request)
     {
