@@ -174,7 +174,7 @@ class PermisosController extends BaseController
      */
     public function DeletePermiso(string $id)
     {
-        $permiso = $this->TienePermiso('PERMISSION_ADDUPD');
+        $permiso = $this->TienePermiso('PERMISSION_DELETE');
 
         if ($permiso !== true) {
             return $permiso;

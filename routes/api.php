@@ -1,12 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PerfilesController;
 use App\Http\Controllers\Api\PermisosController;
 use App\Http\Controllers\Api\ProductosController;
 use App\Http\Controllers\Api\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -56,14 +56,17 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/InsertUsuario', [UsuarioController::class, 'InsertUsuario']);
     Route::post('/UpdateUsuario/{id}', [UsuarioController::class, 'UpdateUsuario']);
     Route::delete('/DeleteUsuario/{id}', [UsuarioController::class, 'DeleteUsuario']);
+    /*
+    |--------------------------------------------------------------------------
+    | Mi perfil
+    |--------------------------------------------------------------------------
+    */
 
+    Route::get('/MiPerfil',[UsuarioController::class, 'MiPerfil']);
+    Route::post('/ActualizarMiPerfil',[UsuarioController::class, 'ActualizarMiPerfil']);
 
 
 });
-
-
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -80,3 +83,11 @@ Route::middleware('auth:api')->group(function () {
 });
 Route::post('/RecuperarPassword', [AuthController::class, 'RecuperarPassword']);
 Route::post('/CambiarPassword', [AuthController::class, 'CambiarPassword'])->middleware('auth:api');
+/*
+|--------------------------------------------------------------------------
+| Registro público
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/RegistrarUsuario',[UsuarioController::class, 'RegistrarUsuario'])->middleware('throttle:5,1');
+

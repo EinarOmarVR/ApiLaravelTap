@@ -254,51 +254,72 @@ class AuthController extends Controller
     }
     public function CambiarPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'SPassword' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/[a-z]/',
+                    'regex:/[A-Z]/',
+                    'regex:/[0-9]/',
+                    'regex:/[@$!%*?&#]/'
+                ]
+            ],
+            [
+                'SPassword.required' =>
+                    'La nueva contraseña es obligatoria.',
 
-            'SPassword' => [
-                'required',
-                'confirmed',
-                'string',
-                'min:8',
-                'regex:/[a-z]/',
-                'regex:/[A-Z]/',
-                'regex:/[0-9]/',
-                'regex:/[@$!%*?&#]/'
+                'SPassword.string' =>
+                    'La contraseña debe ser texto.',
+
+                'SPassword.min' =>
+                    'La contraseña debe tener mínimo 8 caracteres.',
+
+                'SPassword.confirmed' =>
+                    'Las contraseñas no coinciden.',
+
+                'SPassword.regex' =>
+                    'La contraseña debe contener una mayúscula, una minúscula, un número y un carácter especial.'
             ]
-
-        ], [
-
-            'SPassword.required' => 'La contraseña es obligatoria.',
-            'SPassword.confirmed' => 'La confirmación de la contraseña no coincide.',
-            'SPassword.min' => 'La contraseña debe tener mínimo 8 caracteres.',
-            'SPassword.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.'
-
-        ]);
+        );
 
         if ($validator->fails()) {
-
             return response()->json([
                 'message' => 'Error de validación.',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Usuario autenticado
+        | Obtener usuario autenticado
         |--------------------------------------------------------------------------
         */
 
-        $usuario = JWTAuth::parseToken()->authenticate();
+        $usuarioAutenticado =
+            JWTAuth::parseToken()->authenticate();
 
-        if (!$usuario) {
-
+        if (!$usuarioAutenticado) {
             return response()->json([
                 'message' => 'Usuario no autenticado.'
             ], Response::HTTP_UNAUTHORIZED);
+        }
 
+        /*
+        * Consultar explícitamente el modelo Usuarios
+        * para que se reconozca el método save().
+        */
+        $usuario = Usuarios::find(
+            $usuarioAutenticado->getAuthIdentifier()
+        );
+
+        if (!$usuario) {
+            return response()->json([
+                'message' => 'Usuario no encontrado.'
+            ], Response::HTTP_NOT_FOUND);
         }
 
         /*
@@ -307,18 +328,26 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $usuario->SPassword = Hash::make($request->SPassword);
+        $usuario->SPassword = Hash::make(
+            $request->SPassword
+        );
 
         $usuario->BPasswordTemporal = false;
-
         $usuario->TFechaPasswordTemporal = null;
 
         $usuario->save();
 
+        /*
+        * Invalidar el token actual para obligar al usuario
+        * a iniciar sesión con la contraseña nueva.
+        */
+        JWTAuth::invalidate(
+            JWTAuth::getToken()
+        );
+
         return response()->json([
-
-            'message' => 'Contraseña actualizada correctamente.'
-
+            'message' =>
+                'Contraseña actualizada correctamente. Inicia sesión nuevamente.'
         ], Response::HTTP_OK);
     }
 }

@@ -43,6 +43,11 @@ class ProductosController extends BaseController
      */
     public function GetProductos()
     {
+        $permiso = $this->TienePermiso('PROD_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
 
         $productos = Productos::orderBy('TFechaCreacion', 'desc')->get();
 
@@ -54,6 +59,11 @@ class ProductosController extends BaseController
      */
     public function GetProducto(string $id)
     {
+        $permiso = $this->TienePermiso('PROD_VIEW');
+
+        if ($permiso !== true) {
+            return $permiso;
+        }
         $producto = Productos::find($id);
 
         if (!$producto) {
@@ -75,7 +85,7 @@ class ProductosController extends BaseController
         if ($permiso !== true) {
             return $permiso;
         }
-            $error = $this->ValidarProducto($request);
+        $error = $this->ValidarProducto($request);
 
         if ($error) {
             return $error;
