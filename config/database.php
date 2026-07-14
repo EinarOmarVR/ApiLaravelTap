@@ -116,10 +116,13 @@ return [
         
         'mongodb' => [
             'driver' => 'mongodb',
-            'dsn' => env('DB_URI','mongodb://localhost:27017'),
-            'database' => 'ExamenTap'
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+
+            'dsn' => env('DB_URI'),
+
+            'database' => env(
+                'DB_DATABASE',
+                'ExamenTap'
+            ),
         ],
 
     ],
